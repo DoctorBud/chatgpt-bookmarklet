@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ChatGPT Bookmarklet</title>
+
+    <style>
+      body {
+        background: lightgray;
+        padding: 0 10px;
+        font-size: 120%;
+        font-family: Sans-Serif;
+      }
+
+      code {
+        font-family: Sans-Serif;
+      }
+      body > div {
+        border: 5px solid darkslateblue;
+        border-radius: 15px;
+        padding: 10px;
+      }
+
+      #ChatGPTBookmarkletBookmark {
+        padding: 4px 8px;
+        background: darkgray;
+        border: 2px dashed darkslateblue;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <div>
+      <h2>ChatGPT Bookmarklet</h2>
+      <p>
+        The link below is a Javascript Bookmarklet that you can install on your Bookmark Bar and then invoke it when using the ChatGPT web client at <a href="https://chat.openai.com">chat.openai.com</a>. Subsequently (until page-reload), entered text will be annotated with time and location information prior to submitting it to the ChatGPT server.
+      </p>
+
+      <hr>
+
+      <h3>Installing ChatGPT Bookmarklet</h3>
+      <p>
+        A <a href="https://en.wikipedia.org/wiki/Bookmarklet">Bookmarklet</a> is a URL that can be used as a bookmark (e.g., added to your browser's bookmark bar)
+      <p>
+
+      <h4>Drag or Copy this link&nbsp;
+      <a
+        target="_blank"
+        rel="noreferrer noopener"
+        title="ChatGPT Bookmarklet"
+        id="ChatGPTBookmarkletBookmark"
+        href="">
+        OAI
+      </a>
+      &nbsp;to your Bookmark Bar</h4>
+
+      <hr>
+
+      <h3>Starting ChatGPT Bookmarklet</h2>
+      <p>
+        When viewing the ChatGPT website at <a href="https://chat.openai.com">chat.openai.com</a>, click on the OAI bookmark to initialize the bookmarklet and determine your current location (optional). This needs to be done whenever the page reloads.
+      </p>
+
+      <hr>
+
+      <h3>Using ChatGPT Bookmarklet</h2>
+      <p>
+         When chatting via the ChatGPT web application, type your prompt as you normally would, and submit it via the <code>Enter</code> key or by clicking the <code>Send Message</code> button. Prior to your request being submitted to ChatGPT, the bookmarklet will <em>augment</em> your prompt by prefixing it with text that indicates your location (latitude/longitude) and the current locale's time. This additional <em>context</em> allows you to log event-based information and have ChatGPT do all sorts of inference, including valid and useful time calculations.
+      </p>
+    </div>
+
+    <script id="ChatGPTBookmarkletSource">
+function startChatGPTBookmarklet() {
+  const body = document.body;
+  const promptArea = document.getElementById('prompt-textarea');
+  const form = promptArea.parentNode.parentNode.parentNode.parentNode;
+  const button = document.querySelectorAll('button.absolute')[0];
+  let locationText;
+
+  const generateAugmentedPrompt = (originalPrompt) => {
+    const timeStamp = (new Date()).toLocaleString();
+
+    let augmentedPrompt = `Time is ${timeStamp}\n${originalPrompt}`;
+    if (locationText) {
+      augmentedPrompt = `${locationText} ${augmentedPrompt}`
+    }
+
+    return augmentedPrompt;
+  };
+
+  button.addEventListener('click', (event) => {
+    console.log('click', event);
+    promptArea.value = generateAugmentedPrompt(promptArea.value);
+    // event.preventDefault();
+    // event.stopPropagation();
+  });
+
+  promptArea.addEventListener('keydown', (event) => {
+    if (event.keyCode === 13) {
+      promptArea.value = generateAugmentedPrompt(promptArea.value);
+    }
+  });
+
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const { latitude, longitude } = position.coords;
+      locationText = `I'm at (${latitude}, ${longitude}).`;
+      console.log('locationText', locationText);
+    }, function(error) {
+      console.error('Error in getCurrentPosition(): ' + error.message);
+    });
+  }
+  else {
+    console.log('Geolocation is not available in your browser.');
+  }
+}
+    </script>
+
+    <script>
+      const sourceScript = document.getElementById('ChatGPTBookmarkletSource');
+      const loggerSourceText =
+`
+${sourceScript.textContent}
+startChatGPTBookmarklet(true);
+`;
+      const loggerSource = encodeURIComponent(loggerSourceText);
+      const loggerAnchor = document.getElementById('ChatGPTBookmarkletBookmark');
+      loggerAnchor.href = `javascript:${loggerSource}`;
+    </script>
+  </body>
+</html>
